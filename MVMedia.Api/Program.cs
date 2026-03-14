@@ -11,6 +11,7 @@ using MVMedia.Api.Services.Interfaces;
 using System.Text;
 using Microsoft.OpenApi.Models;
 using MVMedia.Api.Context;
+using Microsoft.Extensions.DependencyInjection;
 
 internal class Program
 {
@@ -21,9 +22,9 @@ internal class Program
 
         //CONNECSTION STRING CONFIGURATION
         ///CONNECTION IN HOMOLOGATION
-        var PostgreSqlConnection = builder.Configuration.GetConnectionString("QAConnection");
+        //var PostgreSqlConnection = builder.Configuration.GetConnectionString("QAConnection");
         ///CONNECTION IN PRD - RAILWAY
-        //var PostgreSqlConnection = builder.Configuration.GetConnectionString("PRDConnection");
+        var PostgreSqlConnection = builder.Configuration.GetConnectionString("PRDConnection");
 
         //CONNECT IN DB CONTEXT (IN ALL CASES - QA OR PRD)
         builder.Services.AddDbContext<ApiDbContext>(opt => opt.UseNpgsql(PostgreSqlConnection));
@@ -158,12 +159,31 @@ internal class Program
 
         var app = builder.Build();
 
+        //Trecho para aplicar migrations automaticamente no deploy
+        using (var scope = app.Services.CreateScope())
+        {
+            var services = scope.ServiceProvider;
+            try
+            {
+                var context = services.GetRequiredService<ApiDbContext>();
+                if (context.Database.GetPendingMigrations().Any())
+                {
+                    context.Database.Migrate();
+                }
+            }
+            catch (Exception ex)
+            {
+                var logger = services.GetRequiredService<ILogger<Program>>();
+                logger.LogError(ex, "Ocorreu um erro ao aplicar as migrations");
+            }
+        }
+
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
-        {
-            app.UseSwagger();
-            app.UseSwaggerUI();
-        }
+            {
+                app.UseSwagger();
+                app.UseSwaggerUI();
+            }
 
         app.UseHttpsRedirection();
         app.UseStaticFiles();
