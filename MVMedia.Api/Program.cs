@@ -21,7 +21,7 @@ internal class Program
 
 
         //CONNECSTION STRING CONFIGURATION
-        ///CONNECTION IN HOMOLOGATION
+        //// CONNECTION IN HOMOLOGATION
         //var PostgreSqlConnection = builder.Configuration.GetConnectionString("QAConnection");
         ///CONNECTION IN PRD - RAILWAY
         var PostgreSqlConnection = builder.Configuration.GetConnectionString("PRDConnection");
