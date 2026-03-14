@@ -11,9 +11,8 @@ using MVMedia.Api.Services.Interfaces;
 using System.Text;
 using Microsoft.OpenApi.Models;
 using MVMedia.Api.Context;
-using Microsoft.Extensions.DependencyInjection;
 
-internal class Program
+public partial class Program
 {
     private static void Main(string[] args)
     {
