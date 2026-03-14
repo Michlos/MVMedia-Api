@@ -10,6 +10,7 @@ using MVMedia.Api.Services;
 using MVMedia.Api.Services.Interfaces;
 using System.Text;
 using Microsoft.OpenApi.Models;
+using MVMedia.Api.Context;
 
 internal class Program
 {
@@ -23,8 +24,9 @@ internal class Program
         var PostgreSqlConnection = builder.Configuration.GetConnectionString("QAConnection");
         ///CONNECTION IN PRD - RAILWAY
         //var PostgreSqlConnection = builder.Configuration.GetConnectionString("PRDConnection");
-        //builder.Services.AddDbContext<ApiDbContext>(opt => opt.UseNpgsql(PostgreSqlConnection));
 
+        //CONNECT IN DB CONTEXT (IN ALL CASES - QA OR PRD)
+        builder.Services.AddDbContext<ApiDbContext>(opt => opt.UseNpgsql(PostgreSqlConnection));
         //DEPENDENCE INJECTION FRO REPOSITORIES AND SERVICES
         //REPOSITORIES
         builder.Services.AddScoped<IClientRepository, ClientRepository>();

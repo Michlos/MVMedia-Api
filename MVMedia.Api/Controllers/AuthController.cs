@@ -46,8 +46,9 @@ public class AuthController : ControllerBase
 
             return Ok(new
             {
-                token = new JwtSecurityTokenHandler().WriteToken(token),
-                isadmin = new JwtSecurityTokenHandler().ReadJwtToken(new JwtSecurityTokenHandler().WriteToken(token)).Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value == "IsAdmin"
+                token = new JwtSecurityTokenHandler().WriteToken(token)
+                //token = new JwtSecurityTokenHandler().WriteToken(token),
+                //isadmin = new JwtSecurityTokenHandler().ReadJwtToken(new JwtSecurityTokenHandler().WriteToken(token)).Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value == "IsAdmin"
             });
         }
 

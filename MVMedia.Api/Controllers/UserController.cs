@@ -77,7 +77,7 @@ public class UserController : Controller
     }
 
     [HttpPost("login")]
-    public async Task<ActionResult<UserToken>> Select(LoginModel loginModel)
+    public async Task<ActionResult<String>> Select(LoginModel loginModel)
     {
         var exists = await _authenticateService.UserExists(loginModel.Username);
         if (!exists) return Unauthorized("User not found");
@@ -93,11 +93,15 @@ public class UserController : Controller
         var token = _authenticateService.GenerateToken(user.Id, user.Login);
         var isAdmin = _authenticateService.GetUserByUserName(loginModel.Username).Result.IsAdmin;
 
-        return new UserToken
+        var userToken = new UserToken
         {
             Token = token,
-            IsAdmin = isAdmin
+            IsAdmin=isAdmin
         };
+
+
+        return token;
+        
     }
 
 }

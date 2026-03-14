@@ -63,7 +63,7 @@ public class CompanyController : Controller
         }
         return Ok(companies);
     }
-        // Se não existe Company ou usuário, retorna todas
+    // Se não existe Company ou usuário, retorna todas
 
     [HttpGet("GetCompany/{id}")]
     public async Task<ActionResult<Company>> GetCompanyById(int id)
@@ -79,45 +79,45 @@ public class CompanyController : Controller
     [HttpPost]
     public async Task<ActionResult> AddCompany(CompanyAddDTO company)
     {
-        //EXIST COMPANY
-        var existingCompany = await _companyService.GetAllCompanies();
-        if (existingCompany.Any())
+        if (!await _userService.IsAdmin(User.GetUserId()))
         {
-            if (!User.Identity?.IsAuthenticated ?? true)
-                return Unauthorized("Usuário não autenticado.");
-
-            if (!await _userService.IsAdmin(User.GetUserId()))
-                return Unauthorized("You are not authorized to access this resource.");
-
-            var addedCompany = await _companyService.AddCompany(company);
-            return CreatedAtAction(nameof(GetCompanyById), new { id = addedCompany.Id }, addedCompany);
+            return Unauthorized("You are not authorized to acces this resource");
         }
         else
         {
             var addedCompany = await _companyService.AddCompany(company);
             return CreatedAtAction(nameof(GetCompanyById), new { id = addedCompany.Id }, addedCompany);
+
         }
+
+
     }
 
     [HttpPut]
     public async Task<ActionResult<Company>> UpdateCompany([FromBody] CompanyUpdateDTO companyDTO)
     {
         if (!await _userService.IsAdmin(User.GetUserId()))
+        {
             return Unauthorized("You are not authorized to access this resource.");
+        }
+        else
+        {
 
-        if(companyDTO.Id == 0)
+
+        if (companyDTO.Id == 0)
             return BadRequest("Company ID is required for update.");
 
-        var existingCompany = await _companyService.GetCompanyById(companyDTO.Id);
-        if (existingCompany == null)
-            return NotFound("Company not found.");
+            var existingCompany = await _companyService.GetCompanyById(companyDTO.Id);
+            if (existingCompany == null)
+                return NotFound("Company not found.");
 
-        var updatedCompany = await _companyService.UpdateCompany(companyDTO);
+            var updatedCompany = await _companyService.UpdateCompany(companyDTO);
 
-        if (updatedCompany == null)
-            return NotFound("Company not found.");
+            if (updatedCompany == null)
+                return NotFound("Company not found.");
 
-        return Ok(updatedCompany);
+            return Ok(updatedCompany);
+        }
     }
 
 }

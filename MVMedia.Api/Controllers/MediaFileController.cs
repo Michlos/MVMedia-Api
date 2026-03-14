@@ -15,11 +15,13 @@ public class MediaFileController : ControllerBase
 {
     private readonly IMediaFileService _mediaFileService;
     private readonly IUserService _userService;
+    private readonly IClientService _clientService;
 
-    public MediaFileController(IMediaFileService mediaFileService, IUserService userService)
+    public MediaFileController(IMediaFileService mediaFileService, IUserService userService, IClientService clientService)
     {
         _mediaFileService = mediaFileService;
         _userService = userService;
+        _clientService = clientService;
     }
 
     [HttpPost("AddMediaFile")]
@@ -74,8 +76,19 @@ public class MediaFileController : ControllerBase
 
             var allMediaFiles = await _mediaFileService.GetAllMediaFiles();
             var activeMediaFiles = allMediaFiles.Where(m => m.IsActive).ToList();
-            var filteredMediaFiles = activeMediaFiles.Where(m => m.CompanyId == user.CompanyId).ToList();
-            return Ok(filteredMediaFiles);
+
+            //LISTA TODAS AS EMPRESAS SE FOR AFIM
+            //SE NÃO FOR LISTA SÓ AS COMPANIES DO USUÁRIO
+            if (user.IsAdmin)
+            {
+                return Ok(activeMediaFiles);
+            }
+            else
+            {
+                var filteredMediaFiles = activeMediaFiles.Where(m => m.CompanyId == user.CompanyId).ToList();
+                return Ok(filteredMediaFiles);
+
+            }
         }
 
 
@@ -91,25 +104,52 @@ public class MediaFileController : ControllerBase
     [HttpGet("GetMediaFileByClientId/{clientId}")]
     public async Task<ActionResult<ClientWithMediaFileDTO>> GetMediaFileByClientId(int clientId)
     {
+        var userId = User.GetUserId();
+        var user = await _userService.GetUser(userId);
+        var clientCompanyId = (await _clientService.GetClientById(clientId))?.CompanyId;
+
         var clientMediaFiles = await _mediaFileService.GetAllMediaByClientId(clientId);
         if (clientMediaFiles == null)
-            return NotFound("Nenhum arquivo de mídia encontrado para o cliente especificado.");
-        return Ok(clientMediaFiles);
+            return NotFound("No Media linked to this client.");
+
+        if (!User.Identity.IsAuthenticated)
+        {
+            return Unauthorized("Usuário não autenticado");
+        }
+        else if(user.IsAdmin)
+        {
+            return Ok(clientMediaFiles);
+        }
+        else if (user.CompanyId == clientCompanyId)
+        {
+            return Ok(clientMediaFiles);
+        }
+        else
+        {
+            return Unauthorized("This média file is not a Client in your portfolio");
+        }
     }
 
-    [HttpGet("ListMediaUris")]
-    public async Task<ActionResult<IEnumerable<string>>> ListMediaUris()
-    {
-        var allMediaFiles = await _mediaFileService.GetAllMediaFiles();
-        var activeMediaFiles = allMediaFiles.Where(m => m.IsActive).ToList();
-        var baseUrl = $"{Request.Scheme}://{Request.Host}/Videos/";
-        var uris = activeMediaFiles.Select(m => baseUrl + m.FileName).ToList();
-        return Ok(uris);
-    }
+    //[HttpGet("ListMediaUris")]
+    //public async Task<ActionResult<IEnumerable<string>>> ListMediaUris()
+    //{
+    //    var allMediaFiles = await _mediaFileService.GetAllMediaFiles();
+    //    var activeMediaFiles = allMediaFiles.Where(m => m.IsActive).ToList();
+    //    var baseUrl = $"{Request.Scheme}://{Request.Host}/Videos/";
+    //    var uris = activeMediaFiles.Select(m => baseUrl + m.FileName).ToList();
+    //    return Ok(uris);
+    //}
 
     [HttpPut("UpdateMediaFile/{id}")]
     public async Task<ActionResult<MediaFile>> UpdateMediaFile(Guid id, [FromForm] MediaFileUploadDTO dto)
     {
+        var userId = User.GetUserId();
+        var user = await _userService.GetUser(userId);
+        var userCompanyId = await _userService.GetCompanyId(userId);
+
+        if (userCompanyId != dto.CompanyId)
+            return BadRequest("This media is not a Client in your portfolio");
+
         var existingMediaFile = await _mediaFileService.GetMediaFileById(id);
         var oldFileName = existingMediaFile?.FileName;
         if (existingMediaFile == null)
@@ -146,6 +186,14 @@ public class MediaFileController : ControllerBase
     [HttpDelete("DeleteMediaFile/{id}")]
     public async Task<ActionResult> DeleteMediaFile(Guid id)
     {
+        var userId = User.GetUserId();
+        var userCompanyId = await _userService.GetCompanyId(userId);
+        var mediaToDelete = await _mediaFileService.GetMediaFileById(id);
+        var mediaCompanyId = mediaToDelete.CompanyId;
+
+        if (userCompanyId != mediaCompanyId)
+            BadRequest("This media file is not a Client in your portfolio");
+
         var success = await _mediaFileService.DeleteMediaFile(id);
         if (!success)
             return NotFound("Arquivo de mídia não encontrado ou falha ao deletar.");

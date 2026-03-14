@@ -87,14 +87,26 @@ public class ClientController : Controller
         //if (!await _userService.IsAdmin(User.GetUserId()))
         //    return Unauthorized("You are not authorized to access this resource");
 
-        
+        var userId = User.GetUserId();
+        var isAdmi = await _userService.IsAdmin(userId);
+        var companyId = await _userService.GetCompanyId(userId);
 
-        var clientUpdated = await _clientService.GetClientById(id);
-        if (clientUpdated == null)
+
+        if (userId == 0)
+            return Unauthorized("You are not autenticated to access this resource");
+
+        var client = await _clientService.GetClientById(id);
+        if (client == null)
+            return BadRequest("Client not found");
+        if (client.CompanyId == companyId)
         {
-            return NotFound($"Client with id {id} not found!");
+            return Ok(client);
         }
-        return Ok(clientUpdated);
+        else
+        {
+            return BadRequest("This client is not a your client, please try a other clienteId");
+        }
+
     }
 
 
@@ -117,8 +129,15 @@ public class ClientController : Controller
     public async Task<ActionResult<Client>> UpdateClient([FromBody] ClientUpdateDTO clientDTO)
     {
 
-        if (!await _userService.IsAdmin(User.GetUserId()))
-            return Unauthorized("You are not authorized to access this resource");
+        var userId = User.GetUserId();
+        var companyIdUser = await _userService.GetCompanyId(userId);
+
+        if (await _userService.IsAdmin(User.GetUserId()))
+        {
+            await _clientService.UpdateClient(clientDTO);
+            return Ok(clientDTO);
+
+        }
 
         if (clientDTO.Id == 0)
             return BadRequest("Is not possible to update a client without an ID");
@@ -129,6 +148,10 @@ public class ClientController : Controller
 
         if (clientDTO == null)
             return BadRequest("Invalid client data");
+
+
+        if (existingClient.CompanyId != companyIdUser)
+            return BadRequest($"This company with id {existingClient.Id} is not in your Portfolio");
 
         await _clientService.UpdateClient(clientDTO);
 
