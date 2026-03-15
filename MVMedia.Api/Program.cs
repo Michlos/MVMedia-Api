@@ -90,15 +90,19 @@ public partial class Program
         // CORS para React + cookies
         builder.Services.AddCors(options =>
         {
-            options.AddPolicy("ReactPolicy", policy =>
+            //options.AddPolicy("ReactPolicy", policy =>
+            options.AddPolicy("AllowAll", policy =>
             {
-                policy.WithOrigins("http://localhost:3000")
-                      .AllowAnyHeader()
-                      .AllowAnyMethod()
-                      .AllowCredentials();
+                //policy.WithOrigins("http://localhost:3000")
+                //      .AllowAnyHeader()
+                //      .AllowAnyMethod()
+                //      .AllowCredentials();
+                policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
             });
         });
 
+
+        //CONFIGURE FOR SWAGGER COM JWT
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
 
@@ -144,17 +148,17 @@ public partial class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
-        builder.Services.AddCors(options =>
-        {
-            options.AddPolicy("AllowAll",
-                policy =>
-                {
-                    policy
-                        .AllowAnyOrigin()
-                        .AllowAnyHeader()
-                        .AllowAnyMethod();
-                });
-        });
+        //builder.Services.AddCors(options =>
+        //{
+        //    options.AddPolicy("AllowAll",
+        //        policy =>
+        //        {
+        //            policy
+        //                .AllowAnyOrigin()
+        //                .AllowAnyHeader()
+        //                .AllowAnyMethod();
+        //        });
+        //});
 
         var app = builder.Build();
 
@@ -165,6 +169,8 @@ public partial class Program
             try
             {
                 var context = services.GetRequiredService<ApiDbContext>();
+
+                //AGUARDA UM POUCO PARA O BANCO SUBIR NO RAILWAY ANTES DE TENTAR MIGRAR
                 if (context.Database.GetPendingMigrations().Any())
                 {
                     context.Database.Migrate();
@@ -177,20 +183,27 @@ public partial class Program
             }
         }
 
-        // Configure the HTTP request pipeline.
-        if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
+        /// REMOVING ENVIRONMENT IS DEVELPERS
+        ///  ADDING MIDDLEWARES
+        ///  NO RAILWAYM, SWAGGER GERALMENTE É LIBERADO EM PRODUÇÃO PARA TESTES
+        //// Configure the HTTP request pipeline.
+        //if (app.Environment.IsDevelopment())
+        //    {
+        //        app.UseSwagger();
+        //        app.UseSwaggerUI();
+        //    }
+
+        /// LIBERANDO SWAGGER EM PRODUÇÃO PARA TESTES
+        /// 
+        app.UseSwagger();
+        app.UseSwaggerUI();
 
         app.UseHttpsRedirection();
         app.UseStaticFiles();
-
+        app.UseCors("AllowAll");
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.UseCors("AllowAll");
 
         app.MapControllers();
 
