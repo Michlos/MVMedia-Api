@@ -183,20 +183,20 @@ public partial class Program
             }
         }
 
-        /// REMOVING ENVIRONMENT IS DEVELPERS
-        ///  ADDING MIDDLEWARES
-        ///  NO RAILWAYM, SWAGGER GERALMENTE É LIBERADO EM PRODUÇÃO PARA TESTES
-        //// Configure the HTTP request pipeline.
-        //if (app.Environment.IsDevelopment())
-        //    {
-        //        app.UseSwagger();
-        //        app.UseSwaggerUI();
-        //    }
+        //// REMOVING ENVIRONMENT IS DEVELPERS
+        //// ADDING MIDDLEWARES
+        //// NO RAILWAYM, SWAGGER GERALMENTE É LIBERADO EM PRODUÇÃO PARA TESTES
+        // Configure the HTTP request pipeline.
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI();
+        }
 
-        /// LIBERANDO SWAGGER EM PRODUÇÃO PARA TESTES
-        /// 
-        app.UseSwagger();
-        app.UseSwaggerUI();
+        ///// LIBERANDO SWAGGER EM PRODUÇÃO PARA TESTES
+        ///// 
+        //app.UseSwagger();
+        //app.UseSwaggerUI();
 
         app.UseHttpsRedirection();
         app.UseStaticFiles();
