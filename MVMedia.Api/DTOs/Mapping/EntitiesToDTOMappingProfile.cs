@@ -1,7 +1,5 @@
 ﻿using AutoMapper;
 
-using Microsoft.AspNetCore.Mvc;
-
 using MVMedia.Api.Models;
 
 namespace MVMedia.Api.DTOs.Mapping;

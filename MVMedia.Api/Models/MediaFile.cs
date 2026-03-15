@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Primitives;
-using MVMedia.Api.Models;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace MVMedia.Api.Models;
 

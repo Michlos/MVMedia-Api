@@ -1,5 +1,4 @@
 ﻿using MVMedia.Api.DTOs;
-using MVMedia.Api.Models;
 
 namespace MVMedia.Api.Services.Interfaces;
 

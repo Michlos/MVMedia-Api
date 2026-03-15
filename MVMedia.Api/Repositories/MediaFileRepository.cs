@@ -1,9 +1,7 @@
 ﻿using MVMedia.Api.Context;
 using MVMedia.Api.Models;
 using MVMedia.Api.Repositories.Interfaces;
-using MVMedia.Api.Videos;
 using Microsoft.EntityFrameworkCore;
-using System.IO;
 
 namespace MVMedia.Api.Repositories;
 

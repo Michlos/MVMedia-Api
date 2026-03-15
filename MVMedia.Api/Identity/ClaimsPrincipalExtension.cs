@@ -1,6 +1,4 @@
-﻿using MVMedia.Api.Models;
-
-using System.Security.Claims;
+﻿using System.Security.Claims;
 
 namespace MVMedia.Api.Identity;
 

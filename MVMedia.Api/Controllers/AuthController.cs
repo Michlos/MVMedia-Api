@@ -5,6 +5,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
+namespace MVMedia.Api.Controllers;
+
 [ApiController]
 [Route("[controller]")]
 public class AuthController : ControllerBase
