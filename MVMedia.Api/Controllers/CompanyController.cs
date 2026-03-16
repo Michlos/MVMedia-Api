@@ -68,12 +68,15 @@ public class CompanyController : Controller
     [HttpGet("GetCompany/{id}")]
     public async Task<ActionResult<Company>> GetCompanyById(int id)
     {
-        if (!await _userService.IsAdmin(User.GetUserId()))
-            return Unauthorized("You are not authorized to access this resource.");
         var company = await _companyService.GetCompanyById(id);
-        if (company == null)
-            return NotFound("Company not found.");
+        var userIsAdmin = await _userService.IsAdmin(User.GetUserId());
+        var userCompanyId = await _userService.GetCompanyId(User.GetUserId());
+
+        if(company.Id != userCompanyId)
+            return Unauthorized("This client is not a our portfolio");
+
         return Ok(company);
+            
     }
 
     [HttpPost]
@@ -104,8 +107,8 @@ public class CompanyController : Controller
         {
 
 
-        if (companyDTO.Id == 0)
-            return BadRequest("Company ID is required for update.");
+            if (companyDTO.Id == 0)
+                return BadRequest("Company ID is required for update.");
 
             var existingCompany = await _companyService.GetCompanyById(companyDTO.Id);
             if (existingCompany == null)

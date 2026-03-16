@@ -148,6 +148,7 @@ public class ClientController : Controller
         {
             //IF IS ADMIN - ALTER ANY CLIENTS
             var clientUpdated = await _clientService.UpdateClient(clientDTO);
+            
             return Ok(clientUpdated);
 
         }
