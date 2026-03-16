@@ -10,7 +10,7 @@ namespace MVMedia.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+
 public class ClientController : Controller
 {
     private readonly IClientService _clientService;
@@ -63,10 +63,10 @@ public class ClientController : Controller
         ////CÓDIGO NOVO
         ///
         //1. verificação de autorização simplificada
-        
+
         //var userId = User.GetUserId();
         var user = await _userService.GetUser(User.GetUserId());
-        
+
         if (user.Id == 0)
             return Unauthorized("You are not autenticated to access this resource");
         //var user = await _userService.IsAdmin(userId);
@@ -91,7 +91,7 @@ public class ClientController : Controller
         {
             return Ok(client);
         }
-        
+
 
     }
 
@@ -116,7 +116,7 @@ public class ClientController : Controller
     {
 
         //GET USER DATA
-        
+
 
 
         #region // CHERCK CLIENT SEND DATA
@@ -133,12 +133,12 @@ public class ClientController : Controller
 
         //SEARCH CLIENT
         var existingClient = await _clientService.GetClientById(clientDTO.Id);
-        
+
         //CLIENT NOT FOUND
         if (existingClient == null)
             return NotFound($"Client with id {clientDTO.Id} not found!");
 
-        
+
         var userId = User.GetUserId();
         var companyIdUser = await _userService.GetCompanyId(userId);
         var isAdmin = await _userService.IsAdmin(userId);
@@ -148,20 +148,24 @@ public class ClientController : Controller
         {
             //IF IS ADMIN - ALTER ANY CLIENTS
             var clientUpdated = await _clientService.UpdateClient(clientDTO);
-            
+
             return Ok(clientUpdated);
 
         }
+        else
+        {
+            //VALIDATION IF THE CLIENT BELONGS TO THE PORTFOLIO (SAME COMPANY)
+            if (companyIdUser != existingClient.CompanyId)
+                return BadRequest($"This company with id {existingClient.Id} is not in your Portfolio");
 
-        //VALIDATION IF THE CLIENT BELONGS TO THE PORTFOLIO (SAME COMPANY)
-        if (companyIdUser != existingClient.CompanyId)
-            return BadRequest($"This company with id {existingClient.Id} is not in your Portfolio");
-        
 
-        await _clientService.UpdateClient(clientDTO);
-        var returnedClient = _clientService.GetClientById(clientDTO.Id);
+            await _clientService.UpdateClient(clientDTO);
+            var returnedClient = _clientService.GetClientById(clientDTO.Id);
 
-        return Ok(returnedClient);
+            return Ok(returnedClient);
+
+        }
+
 
     }
 
