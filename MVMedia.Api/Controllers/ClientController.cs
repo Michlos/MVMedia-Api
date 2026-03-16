@@ -54,58 +54,44 @@ public class ClientController : Controller
         {
             return Ok(clients);
         }
-
-        ////CÓDIGO ANTERIOR
-        //if (!await _userService.IsAdmin(User.GetUserId()))
-        //    return Unauthorized("You are not authorized to access this resource");
-
-        //var clients = await _clientService.GetAllClients();
-        //if (clients.Any())
-        //{
-        //    var users = await _userService.GetAllUsers();
-        //    if (users.Any())
-        //    {
-        //        if (!User.Identity?.IsAuthenticated ?? false)
-        //            return Unauthorized("You are not authenticated to access this resource");
-
-        //        var userId = User.GetUserId();
-        //        var user = await _userService.GetUser(userId);
-        //        if (user == null)
-        //            return Unauthorized("User not found");
-
-        //        var filteredClients = clients.Where(c => c.CompanyId == user.CompanyId).ToList();
-        //        if (filteredClients.Any())
-        //            return Ok(filteredClients);
-        //    }
-        //}
-        //return Ok(clients);
-
     }
+
+
     [HttpGet("GetClient/{id}")]
     public async Task<ActionResult<Client>> GetClientById(int id)
     {
-        //if (!await _userService.IsAdmin(User.GetUserId()))
-        //    return Unauthorized("You are not authorized to access this resource");
-
-        var userId = User.GetUserId();
-        var isAdmi = await _userService.IsAdmin(userId);
-        var companyId = await _userService.GetCompanyId(userId);
-
-
-        if (userId == 0)
+        ////CÓDIGO NOVO
+        ///
+        //1. verificação de autorização simplificada
+        
+        //var userId = User.GetUserId();
+        var user = await _userService.GetUser(User.GetUserId());
+        
+        if (user.Id == 0)
             return Unauthorized("You are not autenticated to access this resource");
-
+        //var user = await _userService.IsAdmin(userId);
+        //var companyId = await _userService.GetCompanyId(userId);
+        //2. busca de dados
         var client = await _clientService.GetClientById(id);
         if (client == null)
             return BadRequest("Client not found");
-        if (client.CompanyId == companyId)
+        if (!user.IsAdmin)
         {
-            return Ok(client);
+            if (client.CompanyId == user.CompanyId)
+            {
+                return Ok(client);
+            }
+            else
+            {
+                return BadRequest("This client is not a your client, please try a other clienteId");
+            }
+
         }
         else
         {
-            return BadRequest("This client is not a your client, please try a other clienteId");
+            return Ok(client);
         }
+        
 
     }
 
@@ -129,33 +115,52 @@ public class ClientController : Controller
     public async Task<ActionResult<Client>> UpdateClient([FromBody] ClientUpdateDTO clientDTO)
     {
 
-        var userId = User.GetUserId();
-        var companyIdUser = await _userService.GetCompanyId(userId);
+        //GET USER DATA
+        
 
-        if (await _userService.IsAdmin(User.GetUserId()))
-        {
-            await _clientService.UpdateClient(clientDTO);
-            return Ok(clientDTO);
 
-        }
+        #region // CHERCK CLIENT SEND DATA
 
+        //BADREQUEST FOR INVALID ID
         if (clientDTO.Id == 0)
             return BadRequest("Is not possible to update a client without an ID");
 
-        var existingClient = await _clientService.GetClientById(clientDTO.Id);
-        if (existingClient == null)
-            return NotFound($"Client with id {clientDTO.Id} not found!");
-
+        //BADREQUEST FOR INAVLID DATA
         if (clientDTO == null)
             return BadRequest("Invalid client data");
 
+        #endregion
 
-        if (existingClient.CompanyId != companyIdUser)
+        //SEARCH CLIENT
+        var existingClient = await _clientService.GetClientById(clientDTO.Id);
+        
+        //CLIENT NOT FOUND
+        if (existingClient == null)
+            return NotFound($"Client with id {clientDTO.Id} not found!");
+
+        
+        var userId = User.GetUserId();
+        var companyIdUser = await _userService.GetCompanyId(userId);
+        var isAdmin = await _userService.IsAdmin(userId);
+
+        //VALIDATION FOR CHECK FOR ISADMIN
+        if (isAdmin == true)
+        {
+            //IF IS ADMIN - ALTER ANY CLIENTS
+            var clientUpdated = await _clientService.UpdateClient(clientDTO);
+            return Ok(clientUpdated);
+
+        }
+
+        //VALIDATION IF THE CLIENT BELONGS TO THE PORTFOLIO (SAME COMPANY)
+        if (companyIdUser != existingClient.CompanyId)
             return BadRequest($"This company with id {existingClient.Id} is not in your Portfolio");
+        
 
         await _clientService.UpdateClient(clientDTO);
+        var returnedClient = _clientService.GetClientById(clientDTO.Id);
 
-        return Ok(clientDTO);
+        return Ok(returnedClient);
 
     }
 

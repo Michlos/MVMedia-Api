@@ -20,10 +20,14 @@ public partial class Program
 
 
         //CONNECSTION STRING CONFIGURATION
-        //// CONNECTION IN HOMOLOGATION
-        //var PostgreSqlConnection = builder.Configuration.GetConnectionString("QAConnection");
-        ///CONNECTION IN PRD - RAILWAY
-        var PostgreSqlConnection = builder.Configuration.GetConnectionString("PRDConnection");
+                
+        /////CONNECTION IN PRD - RAILWAY
+        //var PostgreSqlConnection = builder.Configuration.GetConnectionString("PRDConnection");
+        
+        ///CONNECTION IN HML - LOCALHOST
+        var PostgreSqlConnection = builder.Configuration.GetConnectionString("QAConnection");
+
+
 
         //CONNECT IN DB CONTEXT (IN ALL CASES - QA OR PRD)
         builder.Services.AddDbContext<ApiDbContext>(opt => opt.UseNpgsql(PostgreSqlConnection));

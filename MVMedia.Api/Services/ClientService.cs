@@ -33,10 +33,10 @@ public class ClientService : IClientService
         return _mapper.Map<IEnumerable<ClientGetDTO>>(clients);
     }
 
-    public async Task<ClientGetDTO> GetClientById(int id)
+    public async Task<Client> GetClientById(int id)
     {
         var client = await _clientRepository.GetClientById(id);
-        return _mapper.Map<ClientGetDTO>(client);
+        return client;
     }
 
     public async Task<ClientUpdateDTO> UpdateClient(ClientUpdateDTO clientUpdateDTO)

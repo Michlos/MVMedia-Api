@@ -56,7 +56,11 @@ public class ClientRepository : IClientRepository
         existingClient.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
-        return existingClient;
+
+        //BUSCA DADOS DIRETO DO BANCO
+        var clientReGet = new Client();
+        clientReGet = await _context.Clients.Where(cliId => cliId.Id == existingClient.Id).FirstOrDefaultAsync();
+        return clientReGet;
     }
 
     public async Task<IEnumerable<Client>> GetAllClients()

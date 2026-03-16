@@ -30,7 +30,7 @@ public class UserDTO
     public string Password { get; set; }
     public bool IsActive { get; set; }
     
-    [JsonIgnore]
+    //[JsonIgnore]
     public bool IsAdmin { get; set; }
 
 }
