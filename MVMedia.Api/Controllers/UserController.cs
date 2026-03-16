@@ -100,7 +100,7 @@ public class UserController : Controller
         };
 
 
-        return token;
+        return Ok(new {token = token});
         
     }
 
