@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
 using MVMedia.Api.DTOs;
+using MVMedia.Api.Identity;
 using MVMedia.Api.Models;
 using MVMedia.Api.Services.Interfaces;
 
@@ -30,6 +31,7 @@ public class UserController : Controller
     {
         //PRIMEIRO USUÁRIO
         var existingUsers = await _userService.GetAllUsers();
+        
         if (!existingUsers.Any())
         {
 
@@ -53,24 +55,33 @@ public class UserController : Controller
         }
         else
         {
-            if (userDTO == null)
-                return BadRequest("Invalid user data.");
-
-            var existingUser = await _authenticateService.UserExists(userDTO.Login, userDTO.Email);
-            if (existingUser)
-                return BadRequest("User already exists.");
-
-            var user = await _userService.Add(userDTO);
-            if (user == null)
-                return BadRequest("Error creating user.");
-
-            var token = _authenticateService.GenerateToken(user.Id, user.Login);
-            var isAdmin = _authenticateService.GetUserByUserName(userDTO.Login).Result.IsAdmin;
-            return new UserToken
+            var userIsAdmin = await _userService.IsAdmin(User.GetUserId());
+            if (userIsAdmin)
             {
-                Token = token,
-                IsAdmin = isAdmin
-            };
+
+                if (userDTO == null)
+                    return BadRequest("Invalid user data.");
+
+                var existingUser = await _authenticateService.UserExists(userDTO.Login, userDTO.Email);
+                if (existingUser)
+                    return BadRequest("User already exists.");
+
+                var user = await _userService.Add(userDTO);
+                if (user == null)
+                    return BadRequest("Error creating user.");
+
+                var token = _authenticateService.GenerateToken(user.Id, user.Login);
+                var isAdmin = _authenticateService.GetUserByUserName(userDTO.Login).Result.IsAdmin;
+                return new UserToken
+                {
+                    Token = token,
+                    IsAdmin = isAdmin
+                };
+            }
+            else
+            {
+                return Unauthorized("You are not authorized to add an other user");
+            }
         }
 
 
