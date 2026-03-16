@@ -31,7 +31,7 @@ public class UserController : Controller
     {
         //PRIMEIRO USUÁRIO
         var existingUsers = await _userService.GetAllUsers();
-        
+
         if (!existingUsers.Any())
         {
 
@@ -107,12 +107,16 @@ public class UserController : Controller
         var userToken = new UserToken
         {
             Token = token,
-            IsAdmin=isAdmin
+            IsAdmin = isAdmin
         };
 
 
-        return Ok(new {token = token});
-        
+        return Ok(new
+        {
+            Token = token,
+            isAdmin = user.IsAdmin
+        });
+
     }
 
 }
