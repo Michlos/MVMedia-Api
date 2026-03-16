@@ -72,6 +72,11 @@ public class CompanyController : Controller
         var userIsAdmin = await _userService.IsAdmin(User.GetUserId());
         var userCompanyId = await _userService.GetCompanyId(User.GetUserId());
 
+        if (company == null)
+        {
+            return NotFound();
+        }
+
         if(company.Id != userCompanyId)
             return Unauthorized("This client is not a our portfolio");
 
