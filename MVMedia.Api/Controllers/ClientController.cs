@@ -160,7 +160,7 @@ public class ClientController : Controller
 
 
             await _clientService.UpdateClient(clientDTO);
-            var returnedClient = _clientService.GetClientById(clientDTO.Id);
+            var returnedClient = await _clientService.GetClientById(clientDTO.Id);
 
             return Ok(returnedClient);
 

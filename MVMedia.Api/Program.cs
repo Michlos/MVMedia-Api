@@ -25,7 +25,7 @@ public partial class Program
         //var PostgreSqlConnection = builder.Configuration.GetConnectionString("PRDConnection");
         
         ///CONNECTION IN HML - LOCALHOST
-        var PostgreSqlConnection = builder.Configuration.GetConnectionString("PRDConnection");
+        var PostgreSqlConnection = builder.Configuration.GetConnectionString("QAConnection");
 
 
 

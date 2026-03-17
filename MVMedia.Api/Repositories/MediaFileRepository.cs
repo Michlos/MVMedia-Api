@@ -57,8 +57,8 @@ public class MediaFileRepository(ApiDbContext context) : IMediaFileRepository
 
     public async Task<MediaFile> UpdateMediaFile(MediaFile mediaFile, string oldFileName)
     {
-        var existingMediaFile 
-            = await GetMediaFileById(mediaFile.Id) 
+        var existingMediaFile
+            = await GetMediaFileById(mediaFile.Id)
             ?? throw new ArgumentException($"MediaFile with Id {mediaFile.Id} not found.");
 
         // ATUALIZA OS CAMPOS NECESSÁRIOS
@@ -70,7 +70,7 @@ public class MediaFileRepository(ApiDbContext context) : IMediaFileRepository
         // Se o nome do arquivo foi alterado, apaga o arquivo antigo do servidor
         if (mediaFile.FileName != null && mediaFile.FileName != oldFileName)
         {
-            var oldFilePath = Path.Combine(Directory.GetCurrentDirectory(),  oldFileName);
+            var oldFilePath = Path.Combine(Directory.GetCurrentDirectory(), oldFileName);
             if (File.Exists(oldFilePath))
             {
                 File.Delete(oldFilePath);
@@ -92,18 +92,23 @@ public class MediaFileRepository(ApiDbContext context) : IMediaFileRepository
 
     public async Task DeactivateMediaFileByClientId(int clientId)
     {
+
         var mediaFiles = await GetMediaFilesByClientId(clientId);
-        foreach (var mediaFile in mediaFiles)
+        if (mediaFiles != null || mediaFiles.Count != 0)
         {
-            mediaFile.IsActive = false;
+            foreach (var mediaFile in mediaFiles)
+            {
+                mediaFile.IsActive = false;
+            }
+            await _context.SaveChangesAsync();
         }
-        await _context.SaveChangesAsync();
     }
 
     public async Task ActivateMediaFileByClientId(int clientId)
     {
         var mediaFiles = await GetMediaFilesByClientId(clientId);
-        if (mediaFiles != null || mediaFiles.Count != 0) {
+        if (mediaFiles != null || mediaFiles.Count != 0)
+        {
 
             foreach (var mediaFile in mediaFiles)
             {
