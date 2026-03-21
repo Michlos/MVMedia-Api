@@ -102,19 +102,23 @@ public class UserController : Controller
         var user = await _authenticateService.GetUserByUserName(loginModel.Username);
 
         var token = _authenticateService.GenerateToken(user.Id, user.Login);
+        var login = _authenticateService.GetUserByUserName(loginModel.Username).Result.Login;
         var isAdmin = _authenticateService.GetUserByUserName(loginModel.Username).Result.IsAdmin;
 
         var userToken = new UserToken
         {
             Token = token,
-            IsAdmin = isAdmin
+            IsAdmin = isAdmin,
+            Login = login
+
         };
 
 
         return Ok(new
         {
             Token = token,
-            isAdmin = user.IsAdmin
+            isAdmin = user.IsAdmin,
+            Login = login
         });
 
     }
