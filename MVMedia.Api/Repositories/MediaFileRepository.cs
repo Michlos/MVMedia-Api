@@ -1,13 +1,18 @@
-﻿using MVMedia.Api.Context;
+﻿using Microsoft.AspNetCore.Hosting;
+
+using MVMedia.Api.Context;
 using MVMedia.Api.Models;
 using MVMedia.Api.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace MVMedia.Api.Repositories;
 
-public class MediaFileRepository(ApiDbContext context) : IMediaFileRepository
+public class MediaFileRepository(ApiDbContext context, IWebHostEnvironment env) : IMediaFileRepository
 {
     private readonly ApiDbContext _context = context;
+    private readonly IWebHostEnvironment _env = env;
+
+
 
     public async Task<MediaFile> AddMediaFile(MediaFile mediaFile)
     {
@@ -25,9 +30,12 @@ public class MediaFileRepository(ApiDbContext context) : IMediaFileRepository
 
         //var filePath = Path.Combine(Directory.GetCurrentDirectory(), mediaFile.FilePath);
         //var filePath = Path.Combine(Directory.GetCurrentDirectory(), _videoSettings.VideoPath, mediaFile.FileName);
-        var filePath = Path.Combine(Directory.GetCurrentDirectory(), mediaFile.FileName);
+        //está faltando o Videos do path
+        //o Path tem que ter o wwwroot ou não?
+        //filePath = "E:\\MVMedia-Api\\MVMedia.Api\\2da7ec23-6049-40ef-bca7-65999b0e99da_EmporioVitor_Video_Sorteio.mp4"
+        var filePath = Path.Combine(_env.WebRootPath, "Videos", mediaFile.FileName);
 
-
+        //filePath fail filePath = "E:\\MVMedia-Api\\MVMedia.Api\\2da7ec23-6049-40ef-bca7-65999b0e99da_EmporioVitor_Video_Sorteio.mp4"
         if (File.Exists(filePath))
         {
             File.Delete(filePath);
@@ -70,7 +78,7 @@ public class MediaFileRepository(ApiDbContext context) : IMediaFileRepository
         // Se o nome do arquivo foi alterado, apaga o arquivo antigo do servidor
         if (mediaFile.FileName != null && mediaFile.FileName != oldFileName)
         {
-            var oldFilePath = Path.Combine(Directory.GetCurrentDirectory(), oldFileName);
+            var oldFilePath = Path.Combine(_env.WebRootPath, "Videos", oldFileName);
             if (File.Exists(oldFilePath))
             {
                 File.Delete(oldFilePath);

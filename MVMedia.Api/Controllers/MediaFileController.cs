@@ -3,6 +3,7 @@ using MVMedia.Api.DTOs;
 using MVMedia.Api.Identity;
 using MVMedia.Api.Models;
 using MVMedia.Api.Services.Interfaces;
+using System.Security.Claims;
 
 namespace MVMedia.Api.Controllers;
 
@@ -119,7 +120,7 @@ public class MediaFileController : ControllerBase
         {
             return Unauthorized("Usuário não autenticado");
         }
-        else if(user.IsAdmin)
+        else if (user.IsAdmin)
         {
             return Ok(clientMediaFiles);
         }
@@ -189,18 +190,28 @@ public class MediaFileController : ControllerBase
     [HttpDelete("DeleteMediaFile/{id}")]
     public async Task<ActionResult> DeleteMediaFile(Guid id)
     {
-        var userId = User.GetUserId();
-        var userCompanyId = await _userService.GetCompanyId(userId);
-        var mediaToDelete = await _mediaFileService.GetMediaFileById(id);
-        var mediaCompanyId = mediaToDelete.CompanyId;
+        //User isAutentecated
+        //Identity = IsAuthenticated = false
+        if (User.Identity.IsAuthenticated)
+        {
+            var userId = User.GetUserId();
+            var userCompanyId = await _userService.GetCompanyId(userId);
+            var mediaToDelete = await _mediaFileService.GetMediaFileById(id);
+            var mediaCompanyId = mediaToDelete.CompanyId;
 
-        if (userCompanyId != mediaCompanyId)
-            BadRequest("This media file is not a Client in your portfolio");
+            if (userCompanyId != mediaCompanyId)
+                return BadRequest("This media file is not a Client in your portfolio");
 
-        var success = await _mediaFileService.DeleteMediaFile(id);
-        if (!success)
-            return NotFound("Arquivo de mídia não encontrado ou falha ao deletar.");
-        return NoContent();
+            var success = await _mediaFileService.DeleteMediaFile(id);
+            if (!success)
+                return NotFound("Arquivo de mídia não encontrado ou falha ao deletar.");
+            else return Ok("File Media Deleted");
+
+        }
+        else
+        {
+            return BadRequest("User not Authenticaded.");
+        }
     }
 
     [HttpGet("GetMediaFileById/{id}")]
@@ -211,7 +222,7 @@ public class MediaFileController : ControllerBase
         var mediaFile = await _mediaFileService.GetMediaFileById(id);
         var clientCompanyId = (mediaFile != null) ? (await _clientService.GetClientById(mediaFile.ClientId))?.CompanyId : null;
 
-        
+
         if (mediaFile == null)
             return NotFound("No Media linked to this client.");
 
