@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using MVMedia.Api.DTOs;
 using MVMedia.Api.Identity;
@@ -296,4 +297,24 @@ public class MediaFileController : ControllerBase
         const string contentType = "video/mp4";
         return PhysicalFile(filePath, contentType);
     }
+
+
+    [HttpGet("DebugDownload")]
+    [AllowAnonymous] // ou com [Authorize] se quiser exigir token
+    public IActionResult DebugDownload([FromQuery] string fileName)
+    {
+        var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Videos");
+        var filePath = Path.Combine(uploadPath, fileName);
+
+        Console.WriteLine($"[DebugDownload] Tentando acessar arquivo em: {filePath}");
+
+        if (!System.IO.File.Exists(filePath))
+        {
+            return NotFound($"Arquivo não encontrado em disco: {filePath}");
+        }
+
+        const string contentType = "video/mp4";
+        return PhysicalFile(filePath, contentType);
+    }
+``
 }
