@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
 using MVMedia.Api.DTOs;
 using MVMedia.Api.Identity;
 using MVMedia.Api.Models;
@@ -271,20 +272,25 @@ public class MediaFileController : ControllerBase
         }
     }
 
-    [HttpGet("DebugDownload")]
-    public IActionResult DebugDownload([FromQuery] string fileName)
+    [HttpGet("GetToPlay/{id}")]
+    public async Task<IActionResult> GetToPlay([FromQuery] Guid id)
     {
+
+        //Bucar metadata no banco
+        var mediaFile = await _mediaFileService.GetMediaFileById(id);
+
+        if (mediaFile == null)
+            return NotFound("Mídia não encontrada.");
+
+        //Montar caminho físico do arquivo
+
         var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Videos");
-        var filePath = Path.Combine(uploadPath, fileName);
+        var filePath = Path.Combine(uploadPath, mediaFile.FileName);
 
-        Console.WriteLine($"[DebugDownload] TEntando acessar arquivo em: {filePath}");
+        Console.WriteLine($"[GetToPlay] Tentando acessar arquivo em: {filePath}");
 
-        if (!System.IO.File.Exists(filePath))
-        {
-            return NotFound($"Arquivo não encontrado em disco: {filePath}");
-        }
-
-        const string contentType = "text/mp4";
+        //retornando o arquivo como vídeo
+        const string contentType = "video/mp4";
         return PhysicalFile(filePath, contentType);
     }
 }
