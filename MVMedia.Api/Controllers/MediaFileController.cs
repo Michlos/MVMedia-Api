@@ -271,4 +271,20 @@ public class MediaFileController : ControllerBase
         }
     }
 
+    [HttpGet("DebugDownload")]
+    public IActionResult DebugDownload([FromQuery] string fileName)
+    {
+        var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Videos");
+        var filePath = Path.Combine(uploadPath, fileName);
+
+        Console.WriteLine($"[DebugDownload] TEntando acessar arquivo em: {filePath}");
+
+        if (!System.IO.File.Exists(filePath))
+        {
+            return NotFound($"Arquivo não encontrado em disco: {filePath}");
+        }
+
+        const string contentType = "text/mp4";
+        return PhysicalFile(filePath, contentType);
+    }
 }
