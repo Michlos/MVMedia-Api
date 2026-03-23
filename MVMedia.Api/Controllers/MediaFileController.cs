@@ -274,7 +274,7 @@ public class MediaFileController : ControllerBase
     }
 
     [HttpGet("GetToPlay/{id}")]
-    public async Task<IActionResult> GetToPlay([FromRoute] Guid id)
+    public async Task<IActionResult> GetToPlay(Guid id)
     {
 
         //Bucar metadata no banco
