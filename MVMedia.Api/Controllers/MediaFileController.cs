@@ -300,7 +300,6 @@ public class MediaFileController : ControllerBase
 
 
     [HttpGet("DebugDownload")]
-    [AllowAnonymous] // ou com [Authorize] se quiser exigir token
     public IActionResult DebugDownload([FromQuery] string fileName)
     {
         var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Videos");
