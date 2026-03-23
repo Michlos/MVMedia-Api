@@ -273,7 +273,7 @@ public class MediaFileController : ControllerBase
     }
 
     [HttpGet("GetToPlay/{id}")]
-    public async Task<IActionResult> GetToPlay([FromQuery] Guid id)
+    public async Task<IActionResult> GetToPlay([FromRoute] Guid id)
     {
 
         //Bucar metadata no banco
@@ -288,6 +288,9 @@ public class MediaFileController : ControllerBase
         var filePath = Path.Combine(uploadPath, mediaFile.FileName);
 
         Console.WriteLine($"[GetToPlay] Tentando acessar arquivo em: {filePath}");
+
+        if (!System.IO.File.Exists(filePath))
+            return NotFound("Arquivo de vídeo não encontrado em disco");
 
         //retornando o arquivo como vídeo
         const string contentType = "video/mp4";
