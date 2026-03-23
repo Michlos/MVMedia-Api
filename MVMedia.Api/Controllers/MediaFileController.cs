@@ -1,11 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Primitives;
+﻿using Microsoft.AspNetCore.Mvc;
 using MVMedia.Api.DTOs;
 using MVMedia.Api.Identity;
 using MVMedia.Api.Models;
 using MVMedia.Api.Services.Interfaces;
-using System.Security.Claims;
 
 namespace MVMedia.Api.Controllers;
 
@@ -282,6 +279,7 @@ public class MediaFileController : ControllerBase
 
         if (mediaFile == null)
             return NotFound("Mídia não encontrada.");
+
 
         //Montar caminho físico do arquivo
 
