@@ -52,14 +52,41 @@ public class MediaFileController : ControllerBase
             return BadRequest("Falha ao adicionar arquivo de mídia.");
 
         var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Videos");
+
+        //COPILOT - UGESTÕES DE TESTES PARA VERIFICAR SE O ARQUIVO FOI GRAVADO
+        //COPILOT - SUG. 1
+        Console.WriteLine($"[AddMediaFile] uploadPath: {uploadPath}");
+        
         Directory.CreateDirectory(uploadPath);
         var filePath = Path.Combine(uploadPath, fileName);
-        using (var stream = new FileStream(filePath, FileMode.Create))
+
+        //COPILOT - SUG. 2 INTRU TRY CATCH
+        try
         {
-            await dto.File.CopyToAsync(stream);
+            Console.WriteLine($"[AddMediaFile] Gravando arquivo em: {filePath}");
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await dto.File.CopyToAsync(stream);
+            }
+
+            Console.WriteLine($"[AddMediaFile] Arquivo salvo com sucesso: {filePath}");
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[AddMediaFile] ERRO ao salvar arquivo: {ex}");
+            return StatusCode(500, "Erro ao salvar arquivo em disco");
         }
 
         return Ok(mediaFileAdded);
+        
+        //using (var stream = new FileStream(filePath, FileMode.Create))
+        //{
+        //    await dto.File.CopyToAsync(stream);
+        //}
+
+        //return Ok(mediaFileAdded);
     }
 
     [HttpGet("ListActiveMediaFiles")]
