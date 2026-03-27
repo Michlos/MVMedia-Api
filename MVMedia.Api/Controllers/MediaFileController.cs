@@ -94,38 +94,38 @@ public class MediaFileController : ControllerBase
 
         #region AUTHENTICATING
 
-        //// AUTENTICANDO O USUÁRIO PARA RETORNAR APENAS OS ARQUIVOS DE MÍDIA DA EMPRESA DO USUÁRIO AUTENTICADO
-        //if (!User.Identity.IsAuthenticated)
-        //{
-        //    return Unauthorized("Usuário não autenticado.");
-        //}
-        //else
-        //{
-        //    var userId = User.GetUserId();
-        //    var user = await _userService.GetUser(userId);
+        // AUTENTICANDO O USUÁRIO PARA RETORNAR APENAS OS ARQUIVOS DE MÍDIA DA EMPRESA DO USUÁRIO AUTENTICADO
+        if (!User.Identity.IsAuthenticated)
+        {
+            return Unauthorized("Usuário não autenticado.");
+        }
+        else
+        {
+            var userId = User.GetUserId();
+            var user = await _userService.GetUser(userId);
 
-        //    var allMediaFiles = await _mediaFileService.GetAllMediaFiles();
-        //    var activeMediaFiles = allMediaFiles.Where(m => m.IsActive).ToList();
+            var allMediaFiles = await _mediaFileService.GetAllMediaFiles();
+            var activeMediaFiles = allMediaFiles.Where(m => m.IsActive).ToList();
 
-        //    //LISTA TODAS AS EMPRESAS SE FOR AFIM
-        //    //SE NÃO FOR LISTA SÓ AS COMPANIES DO USUÁRIO
-        //    if (user.IsAdmin)
-        //    {
-        //        return Ok(activeMediaFiles);
-        //    }
-        //    else
-        //    {
-        //        var filteredMediaFiles = activeMediaFiles.Where(m => m.CompanyId == user.CompanyId).ToList();
-        //        return Ok(filteredMediaFiles);
+            //LISTA TODAS AS EMPRESAS SE FOR AFIM
+            //SE NÃO FOR LISTA SÓ AS COMPANIES DO USUÁRIO
+            if (user.IsAdmin)
+            {
+                return Ok(activeMediaFiles);
+            }
+            else
+            {
+                var filteredMediaFiles = activeMediaFiles.Where(m => m.CompanyId == user.CompanyId).ToList();
+                return Ok(filteredMediaFiles);
 
-        //    }
-        //}
+            }
+        }
         #endregion
 
-        ///SEM AUTENTICAÇÃO, RETORNANDO TODOS OS ARQUIVOS DE MÍDIA ATIVOS
-        var allMediaFiles = await _mediaFileService.GetAllMediaFiles();
-        var activeMediaFiles = allMediaFiles.Where(m => m.IsActive).ToList();
-        return Ok(activeMediaFiles);
+        /////SEM AUTENTICAÇÃO, RETORNANDO TODOS OS ARQUIVOS DE MÍDIA ATIVOS
+        //var allMediaFiles = await _mediaFileService.GetAllMediaFiles();
+        //var activeMediaFiles = allMediaFiles.Where(m => m.IsActive).ToList();
+        //return Ok(activeMediaFiles);
 
 
 
