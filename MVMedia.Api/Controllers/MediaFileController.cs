@@ -1,8 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using FFMpegCore;
+using FFMpegCore.Enums;
+using Microsoft.AspNetCore.Mvc;
 using MVMedia.Api.DTOs;
 using MVMedia.Api.Identity;
 using MVMedia.Api.Models;
 using MVMedia.Api.Services.Interfaces;
+using System.IO;
 
 namespace MVMedia.Api.Controllers;
 
@@ -30,7 +33,17 @@ public class MediaFileController : ControllerBase
         if (dto.File == null || dto.File.Length == 0)
             return BadRequest("Nenhum arquivo enviado.");
 
-        var fileName = $"{Guid.NewGuid()}_{dto.File.FileName}";
+
+        var originalFileName = Path.GetFileName(dto.File.FileName);
+        var fileGuid = Guid.NewGuid();
+
+
+        var fileName = $"{fileGuid}_{originalFileName}";
+
+        //NOME DO THUMBNAIL
+        var originalNameWithoutExt = Path.GetFileNameWithoutExtension(originalFileName);
+        var thumbFileName = $"{fileGuid}_tumb_{originalNameWithoutExt}.jpg";
+
         var mediaFile = new MediaFile
         {
             Id = Guid.NewGuid(),
@@ -42,7 +55,8 @@ public class MediaFileController : ControllerBase
             IsPublic = dto.IsPublic,
             IsActive = true,
             ClientId = dto.ClientId,
-            CompanyId = dto.CompanyId
+            CompanyId = dto.CompanyId,
+            ThumbFileName = thumbFileName
         };
 
         // Salva no banco
@@ -55,9 +69,10 @@ public class MediaFileController : ControllerBase
         //COPILOT - UGESTÕES DE TESTES PARA VERIFICAR SE O ARQUIVO FOI GRAVADO
         //COPILOT - SUG. 1
         Console.WriteLine($"[AddMediaFile] uploadPath: {uploadPath}");
-        
+
         Directory.CreateDirectory(uploadPath);
         var filePath = Path.Combine(uploadPath, fileName);
+        var thumbPath = Path.Combine(uploadPath, thumbFileName);
 
         //COPILOT - SUG. 2 INTRU TRY CATCH
         try
@@ -70,7 +85,8 @@ public class MediaFileController : ControllerBase
             }
 
             Console.WriteLine($"[AddMediaFile] Arquivo salvo com sucesso: {filePath}");
-
+            await GenerateVideoThumbnailWithFFMpegCoreAsync(filePath, thumbPath );
+            Console.WriteLine($"[AddMediaFile] Thumbnail gerada com sucesso: {thumbPath}");
         }
         catch (Exception ex)
         {
@@ -79,7 +95,7 @@ public class MediaFileController : ControllerBase
         }
 
         return Ok(mediaFileAdded);
-        
+
         //using (var stream = new FileStream(filePath, FileMode.Create))
         //{
         //    await dto.File.CopyToAsync(stream);
@@ -87,6 +103,45 @@ public class MediaFileController : ControllerBase
 
         //return Ok(mediaFileAdded);
     }
+
+
+
+    /// <summary>
+    /// Gera thumbnail baseado no primeiro frame (ou 0.1s para evitar frame preto) e salva como JPG.
+    /// Requer ffmpeg disponível no PATH ou configurado via GlobalFFOptions.
+    /// </summary>
+    private static async Task GenerateVideoThumbnailWithFFMpegCoreAsync(string videoPath, string outputImagePath)
+    {
+        var captureTime = TimeSpan.FromMilliseconds(100); // evita frame preto no 0s
+
+        var inputARgs = $"-ss {captureTime:hh\\:mm\\:ss\\.fff}";
+        var outputArgs = "-frames:v 1 -q:v 2";
+
+        var args = FFMpegArguments.FromFileInput(videoPath, verifyExists: true, options =>
+        options.WithCustomArgument(inputARgs));
+
+        var proc = args.OutputToFile(outputImagePath, overwrite: true, oprions =>
+        oprions.WithCustomArgument(outputArgs));
+
+        await proc.ProcessAsynchronously();
+
+        Directory.CreateDirectory(Path.GetDirectoryName(outputImagePath)!);
+
+        //await FFMpegArguments
+        //    .FromFileInput(videoPath, true, options =>
+        //        options.WithCustomArgument($"-ss {captureTime:hh\\:mm\\:ss\\.fff}"))
+        //    .OutputToFile(outputImagePath, overwrite: true, options =>
+        //        options.WithCustomArgument("-frames:v 1 -q:v 2"))
+        //    .ProcessAsynchronously();
+
+        
+
+        if (!System.IO.File.Exists(outputImagePath))
+            throw new FileNotFoundException("Thumbnail não foi gerado.", outputImagePath);
+    }
+
+
+
 
     [HttpGet("ListActiveMediaFiles")]
     public async Task<ActionResult<IEnumerable<MediaFile>>> ListActiveMediaFiles()
@@ -313,5 +368,7 @@ public class MediaFileController : ControllerBase
         const string contentType = "video/mp4";
         return PhysicalFile(filePath, contentType);
     }
+
+
 
 }

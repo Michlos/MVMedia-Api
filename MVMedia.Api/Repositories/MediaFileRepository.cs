@@ -34,6 +34,8 @@ public class MediaFileRepository(ApiDbContext context, IWebHostEnvironment env) 
         //o Path tem que ter o wwwroot ou não?
         //filePath = "E:\\MVMedia-Api\\MVMedia.Api\\2da7ec23-6049-40ef-bca7-65999b0e99da_EmporioVitor_Video_Sorteio.mp4"
         var filePath = Path.Combine(_env.WebRootPath, "Videos", mediaFile.FileName);
+        var thumbFilePath = Path.Combine(_env.WebRootPath, "Videos", mediaFile.ThumbFileName ?? string.Empty);
+
 
         //filePath fail filePath = "E:\\MVMedia-Api\\MVMedia.Api\\2da7ec23-6049-40ef-bca7-65999b0e99da_EmporioVitor_Video_Sorteio.mp4"
         if (File.Exists(filePath))
@@ -41,7 +43,13 @@ public class MediaFileRepository(ApiDbContext context, IWebHostEnvironment env) 
             File.Delete(filePath);
         }
 
+        if(File.Exists(thumbFilePath))
+        {
+            File.Delete(thumbFilePath);
+        }
+
         _context.MediaFiles.Remove(mediaFile);
+
         await _context.SaveChangesAsync();
 
         return true;

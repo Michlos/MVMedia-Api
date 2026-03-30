@@ -11,6 +11,7 @@ using MVMedia.Api.Services.Interfaces;
 using System.Text;
 using Microsoft.OpenApi.Models;
 using MVMedia.Api.Context;
+using FFMpegCore;
 
 public partial class Program
 {
@@ -165,6 +166,14 @@ public partial class Program
         //});
 
         var app = builder.Build();
+
+        GlobalFFOptions.Configure(new FFOptions
+        {
+            BinaryFolder = @"E:\FFMPEG\bin",
+            TemporaryFilesFolder = Path.Combine(AppContext.BaseDirectory, "ffmpeg-temp"),
+        });
+
+        Directory.CreateDirectory(Path.Combine(AppContext.BaseDirectory, "ffmpeg-temp"));
 
         //Trecho para aplicar migrations automaticamente no deploy
         using (var scope = app.Services.CreateScope())

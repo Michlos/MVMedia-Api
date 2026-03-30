@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MVMedia.Api.Migrations
 {
     [DbContext(typeof(ApiDbContext))]
-    [Migration("20260222045405_AddingCompanyDomain")]
-    partial class AddingCompanyDomain
+    [Migration("20260330081042_Include ThumbFileName in MediaFile")]
+    partial class IncludeThumbFileNameinMediaFile
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,7 +25,7 @@ namespace MVMedia.Api.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("MVMedia.API.Models.Client", b =>
+            modelBuilder.Entity("MVMedia.Api.Models.Client", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -92,51 +92,6 @@ namespace MVMedia.Api.Migrations
                     b.ToTable("Clients");
                 });
 
-            modelBuilder.Entity("MVMedia.API.Models.Media", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ClientId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("MediaUrl")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClientId");
-
-                    b.ToTable("Medias");
-                });
-
             modelBuilder.Entity("MVMedia.Api.Models.Company", b =>
                 {
                     b.Property<int>("Id")
@@ -191,6 +146,51 @@ namespace MVMedia.Api.Migrations
                     b.ToTable("Companies");
                 });
 
+            modelBuilder.Entity("MVMedia.Api.Models.Media", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ClientId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("MediaUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientId");
+
+                    b.ToTable("Medias");
+                });
+
             modelBuilder.Entity("MVMedia.Api.Models.MediaFile", b =>
                 {
                     b.Property<Guid>("Id")
@@ -198,6 +198,9 @@ namespace MVMedia.Api.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<int>("ClientId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CompanyId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Description")
@@ -217,6 +220,9 @@ namespace MVMedia.Api.Migrations
 
                     b.Property<bool>("IsPublic")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("ThumbFileName")
+                        .HasColumnType("text");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -301,7 +307,7 @@ namespace MVMedia.Api.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("MVMedia.API.Models.Client", b =>
+            modelBuilder.Entity("MVMedia.Api.Models.Client", b =>
                 {
                     b.HasOne("MVMedia.Api.Models.Company", "Company")
                         .WithMany()
@@ -312,9 +318,9 @@ namespace MVMedia.Api.Migrations
                     b.Navigation("Company");
                 });
 
-            modelBuilder.Entity("MVMedia.API.Models.Media", b =>
+            modelBuilder.Entity("MVMedia.Api.Models.Media", b =>
                 {
-                    b.HasOne("MVMedia.API.Models.Client", "Client")
+                    b.HasOne("MVMedia.Api.Models.Client", "Client")
                         .WithMany()
                         .HasForeignKey("ClientId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -325,7 +331,7 @@ namespace MVMedia.Api.Migrations
 
             modelBuilder.Entity("MVMedia.Api.Models.MediaFile", b =>
                 {
-                    b.HasOne("MVMedia.API.Models.Client", "Client")
+                    b.HasOne("MVMedia.Api.Models.Client", "Client")
                         .WithMany()
                         .HasForeignKey("ClientId")
                         .OnDelete(DeleteBehavior.Cascade)

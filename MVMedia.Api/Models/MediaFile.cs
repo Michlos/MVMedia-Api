@@ -30,6 +30,8 @@ public class MediaFile
     public DateTime? UpdatedAt { get; set; }
     public bool IsPublic { get; set; }
     public bool IsActive { get; set; }
+
+    public string? ThumbFileName { get; set; }
     public int ClientId { get; set; }
     public virtual Client Client { get; set; }
     public int CompanyId { get; set; }
