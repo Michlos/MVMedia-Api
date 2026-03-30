@@ -91,7 +91,7 @@ public class MediaFileController : ControllerBase
         catch (Exception ex)
         {
             Console.WriteLine($"[AddMediaFile] ERRO ao salvar arquivo: {ex}");
-            return StatusCode(500, "Erro ao salvar arquivo em disco");
+            return StatusCode(500, $"Erro ao salvar arquivo em disco/n {ex}");
         }
 
         return Ok(mediaFileAdded);
