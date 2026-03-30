@@ -1,11 +1,9 @@
-﻿using FFMpegCore;
-using FFMpegCore.Enums;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using MVMedia.Api.DTOs;
 using MVMedia.Api.Identity;
 using MVMedia.Api.Models;
 using MVMedia.Api.Services.Interfaces;
-using System.IO;
+using System.Diagnostics;
 
 namespace MVMedia.Api.Controllers;
 
@@ -85,8 +83,27 @@ public class MediaFileController : ControllerBase
             }
 
             Console.WriteLine($"[AddMediaFile] Arquivo salvo com sucesso: {filePath}");
-            await GenerateVideoThumbnailWithFFMpegCoreAsync(filePath, thumbPath );
-            Console.WriteLine($"[AddMediaFile] Thumbnail gerada com sucesso: {thumbPath}");
+
+
+            try
+            {
+                if(dto.File.ContentType?.StartsWith("video/", StringComparison.OrdinalIgnoreCase) == true)
+                {
+                    await GenerateThumbnailByProcessAsync(
+                        videoPath: filePath,
+                        outputImagePath: thumbPath,
+                        captureTime: TimeSpan.FromMilliseconds(100),
+                        width: 320,
+                        jpegQuality: 2
+                        );
+
+                    Console.WriteLine($"[AddMediaFile] Thumbnail gerado com sucesso: {thumbPath}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[AddMediaFile] ERRO ao gerar thumbnail. Erro\n {ex}");
+            }
         }
         catch (Exception ex)
         {
@@ -110,35 +127,35 @@ public class MediaFileController : ControllerBase
     /// Gera thumbnail baseado no primeiro frame (ou 0.1s para evitar frame preto) e salva como JPG.
     /// Requer ffmpeg disponível no PATH ou configurado via GlobalFFOptions.
     /// </summary>
-    private static async Task GenerateVideoThumbnailWithFFMpegCoreAsync(string videoPath, string outputImagePath)
-    {
-        var captureTime = TimeSpan.FromMilliseconds(100); // evita frame preto no 0s
+    //private static async Task GenerateVideoThumbnailWithFFMpegCoreAsync(string videoPath, string outputImagePath)
+    //{
+    //    var captureTime = TimeSpan.FromMilliseconds(100); // evita frame preto no 0s
 
-        var inputARgs = $"-ss {captureTime:hh\\:mm\\:ss\\.fff}";
-        var outputArgs = "-frames:v 1 -q:v 2";
+    //    var inputARgs = $"-ss {captureTime:hh\\:mm\\:ss\\.fff}";
+    //    var outputArgs = "-frames:v 1 -q:v 2";
 
-        var args = FFMpegArguments.FromFileInput(videoPath, verifyExists: true, options =>
-        options.WithCustomArgument(inputARgs));
+    //    var args = FFMpegArguments.FromFileInput(videoPath, verifyExists: true, options =>
+    //    options.WithCustomArgument(inputARgs));
 
-        var proc = args.OutputToFile(outputImagePath, overwrite: true, oprions =>
-        oprions.WithCustomArgument(outputArgs));
+    //    var proc = args.OutputToFile(outputImagePath, overwrite: true, oprions =>
+    //    oprions.WithCustomArgument(outputArgs));
 
-        await proc.ProcessAsynchronously();
+    //    await proc.ProcessAsynchronously();
 
-        Directory.CreateDirectory(Path.GetDirectoryName(outputImagePath)!);
+    //    Directory.CreateDirectory(Path.GetDirectoryName(outputImagePath)!);
 
-        //await FFMpegArguments
-        //    .FromFileInput(videoPath, true, options =>
-        //        options.WithCustomArgument($"-ss {captureTime:hh\\:mm\\:ss\\.fff}"))
-        //    .OutputToFile(outputImagePath, overwrite: true, options =>
-        //        options.WithCustomArgument("-frames:v 1 -q:v 2"))
-        //    .ProcessAsynchronously();
+    //    //await FFMpegArguments
+    //    //    .FromFileInput(videoPath, true, options =>
+    //    //        options.WithCustomArgument($"-ss {captureTime:hh\\:mm\\:ss\\.fff}"))
+    //    //    .OutputToFile(outputImagePath, overwrite: true, options =>
+    //    //        options.WithCustomArgument("-frames:v 1 -q:v 2"))
+    //    //    .ProcessAsynchronously();
 
-        
 
-        if (!System.IO.File.Exists(outputImagePath))
-            throw new FileNotFoundException("Thumbnail não foi gerado.", outputImagePath);
-    }
+
+    //    if (!System.IO.File.Exists(outputImagePath))
+    //        throw new FileNotFoundException("Thumbnail não foi gerado.", outputImagePath);
+    //}
 
 
 
@@ -369,6 +386,94 @@ public class MediaFileController : ControllerBase
         return PhysicalFile(filePath, contentType);
     }
 
+    private static async Task GenerateThumbnailByProcessAsync(
+        string videoPath,
+        string outputImagePath,
+        TimeSpan? captureTime = null,
+        int? width = null,
+        int jpegQuality = 2,
+        CancellationToken ct = default)
+    {
+        captureTime ??= TimeSpan.FromMilliseconds(100);
+
+        var outDir = Path.GetDirectoryName(outputImagePath);
+
+        if (!string.IsNullOrWhiteSpace(outDir))
+            Directory.CreateDirectory(outDir);
+
+        var ffmpegExe = ResolveFfmpegExecutable();
+
+        var overwrite = "-y";
+        var hideBanner = "-hide_banner";
+        var logLevel = "-loglevel error";
+
+        var ss = $"-ss {captureTime:hh\\:mm\\:ss\\.fff}";
+        var input = $"-i \"{videoPath}\"";
+
+        var oneFrame = "-frames:v 1";
+
+        var q = $"-q:v {jpegQuality}";
+
+        var vf = width.HasValue ? $"-vf \"scale={width.Value}:-2\"" : "";
+
+        var format = "-f image2";
+
+        var output = $"\"{outputImagePath}\"";
+
+        var args = string.Join(" ", new[]
+        {
+            overwrite, hideBanner, logLevel, ss, input, oneFrame, q, vf, format, output
+        }.Where(x => !string.IsNullOrWhiteSpace(x)));
+
+        //logs
+        Console.WriteLine($"[FFMPEG] exe: {ffmpegExe}");
+        Console.WriteLine($"[FFMPEG] args: {args}");
 
 
+        var psi = new ProcessStartInfo
+        {
+            FileName = ffmpegExe,
+            Arguments = args,
+            RedirectStandardError = true,
+            RedirectStandardOutput = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+
+        using var process = new Process { StartInfo = psi, EnableRaisingEvents = true };
+
+        try
+        {
+            process.Start();
+        }
+        catch (Exception startEx)
+        {
+            throw new InvalidOperationException(
+                $"Não foi possivel iniciar '{ffmpegExe}'. FFmpeg está instalado e acessível?" +
+                $"Detalhes: {startEx.Message}", startEx);
+        }
+
+
+        //lê stdout/stderr
+        var stdOutTask = process.StandardOutput.ReadToEndAsync();
+        var stdErrTask = process.StandardError.ReadToEndAsync();
+
+        await process.WaitForExitAsync(ct);
+
+        var stdout = await stdOutTask;
+        var stderr = await stdErrTask;
+
+        if(process.ExitCode != 0)
+        {
+            throw new FileNotFoundException ("FFmpeg executou sem erro, mas o thumbnail não foi gerado.", outputImagePath);
+        }
+    }
+
+    private static string ResolveFfmpegExecutable()
+    {
+        if (!OperatingSystem.IsWindows())
+            return "ffmpeg";
+
+        return "ffmpeg.exe";
+    }
 }

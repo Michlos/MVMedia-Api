@@ -167,13 +167,13 @@ public partial class Program
 
         var app = builder.Build();
 
-        GlobalFFOptions.Configure(new FFOptions
-        {
-            BinaryFolder = @"E:\FFMPEG\bin",
-            TemporaryFilesFolder = Path.Combine(AppContext.BaseDirectory, "ffmpeg-temp"),
-        });
+        //GlobalFFOptions.Configure(new FFOptions
+        //{
+        //    BinaryFolder = @"E:\FFMPEG\bin",
+        //    TemporaryFilesFolder = Path.Combine(AppContext.BaseDirectory, "ffmpeg-temp"),
+        //});
 
-        Directory.CreateDirectory(Path.Combine(AppContext.BaseDirectory, "ffmpeg-temp"));
+        //Directory.CreateDirectory(Path.Combine(AppContext.BaseDirectory, "ffmpeg-temp"));
 
         //Trecho para aplicar migrations automaticamente no deploy
         using (var scope = app.Services.CreateScope())
