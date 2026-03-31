@@ -28,50 +28,30 @@ public class MediaFileRepository(ApiDbContext context, IWebHostEnvironment env) 
         if (mediaFile == null)
             return false;
 
-        //var filePath = Path.Combine(Directory.GetCurrentDirectory(), mediaFile.FilePath);
-        //var filePath = Path.Combine(Directory.GetCurrentDirectory(), _videoSettings.VideoPath, mediaFile.FileName);
-        //está faltando o Videos do path
-        //o Path tem que ter o wwwroot ou não?
-        //filePath = "E:\\MVMedia-Api\\MVMedia.Api\\2da7ec23-6049-40ef-bca7-65999b0e99da_EmporioVitor_Video_Sorteio.mp4"
         var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Videos");
 
         var filePath = Path.Combine(uploadPath, mediaFile.FileName);
         var thumbFilePath = Path.Combine(uploadPath, mediaFile.ThumbFileName);
 
 
-        //filePath fail filePath = "E:\\MVMedia-Api\\MVMedia.Api\\2da7ec23-6049-40ef-bca7-65999b0e99da_EmporioVitor_Video_Sorteio.mp4"
         if (File.Exists(filePath))
         {
-            try
-            {
+            
                 File.Delete(filePath);
-            }
-            catch
-            {
-                throw new IOException($"Erro ao deletar o arquivo de vídeo {filePath}");
-            }
         }
         else
         {
-            throw new FileNotFoundException($"Aruqivo de vídeo {filePath} NÃO ENCONTRADO");
+            Console.Write($"Aruqivo de vídeo {filePath} NÃO ENCONTRADO\nProcesso Continuado para remover do DB");
         }
 
         if (File.Exists(thumbFilePath))
         {
-            try
-            {
                 File.Delete(thumbFilePath);
 
-            }
-            catch
-            {
-
-                throw new IOException($"Erro ao deletar o arquivo de thumb {thumbFilePath}");
-            }
         }
         else
         {
-            throw new FileNotFoundException($"Aruqivo de thumb {thumbFilePath} NÃO ENCONTRADO");
+            Console.Write($"Aruqivo de thumbnail {thumbFilePath} NÃO ENCONTRADO\nProcesso Continuado para remover do DB");
         }
 
         _context.MediaFiles.Remove(mediaFile);
