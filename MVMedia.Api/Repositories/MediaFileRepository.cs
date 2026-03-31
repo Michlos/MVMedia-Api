@@ -40,12 +40,36 @@ public class MediaFileRepository(ApiDbContext context, IWebHostEnvironment env) 
         //filePath fail filePath = "E:\\MVMedia-Api\\MVMedia.Api\\2da7ec23-6049-40ef-bca7-65999b0e99da_EmporioVitor_Video_Sorteio.mp4"
         if (File.Exists(filePath))
         {
-            File.Delete(filePath);
+            try
+            {
+                File.Delete(filePath);
+            }
+            catch
+            {
+                throw new IOException($"Erro ao deletar o arquivo de vídeo {filePath}");
+            }
+        }
+        else
+        {
+            throw new FileNotFoundException($"Aruqivo de vídeo {filePath} NÃO ENCONTRADO");
         }
 
-        if(File.Exists(thumbFilePath))
+        if (File.Exists(thumbFilePath))
         {
-            File.Delete(thumbFilePath);
+            try
+            {
+                File.Delete(thumbFilePath);
+
+            }
+            catch
+            {
+
+                throw new IOException($"Erro ao deletar o arquivo de thumb {thumbFilePath}");
+            }
+        }
+        else
+        {
+            throw new FileNotFoundException($"Aruqivo de thumb {thumbFilePath} NÃO ENCONTRADO");
         }
 
         _context.MediaFiles.Remove(mediaFile);
