@@ -33,8 +33,10 @@ public class MediaFileRepository(ApiDbContext context, IWebHostEnvironment env) 
         //está faltando o Videos do path
         //o Path tem que ter o wwwroot ou não?
         //filePath = "E:\\MVMedia-Api\\MVMedia.Api\\2da7ec23-6049-40ef-bca7-65999b0e99da_EmporioVitor_Video_Sorteio.mp4"
-        var filePath = Path.Combine(_env.WebRootPath, "Videos", mediaFile.FileName);
-        var thumbFilePath = Path.Combine(_env.WebRootPath, "Videos", mediaFile.ThumbFileName ?? string.Empty);
+        var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Videos");
+
+        var filePath = Path.Combine(uploadPath, mediaFile.FileName);
+        var thumbFilePath = Path.Combine(uploadPath, mediaFile.ThumbFileName);
 
 
         //filePath fail filePath = "E:\\MVMedia-Api\\MVMedia.Api\\2da7ec23-6049-40ef-bca7-65999b0e99da_EmporioVitor_Video_Sorteio.mp4"
