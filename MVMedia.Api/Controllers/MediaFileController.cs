@@ -344,6 +344,7 @@ public class MediaFileController : ControllerBase
 
     [HttpGet("GetToPlay/{id}")]
     public async Task<IActionResult> GetToPlay(Guid id)
+
     {
 
         //Bucar metadata no banco
@@ -368,6 +369,25 @@ public class MediaFileController : ControllerBase
         return PhysicalFile(filePath, contentType);
     }
 
+    [HttpGet("GetThumb/{id}")]
+    public async Task<IActionResult> GetThumb(Guid id)
+    {
+        //Bucar metadata no banco
+        var mediaFile = await _mediaFileService.GetMediaFileById(id);
+        if (mediaFile == null)
+            return NotFound("Mídia não encontrada.");
+
+        //Montar caminho físico do thumbnail
+        var thumbPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Videos");
+        var thumbFilePath = Path.Combine(thumbPath, mediaFile.ThumbFileName ?? "");
+
+        if(!System.IO.File.Exists(thumbFilePath))
+            return NotFound("Thumbnail não encontrado em disco");
+
+        //retornando o arquivo como imagem
+        const string contentType = "image/jpeg";
+        return PhysicalFile(thumbFilePath, contentType);
+    }
 
     [HttpGet("DebugDownload")]
     public IActionResult DebugDownload([FromQuery] string fileName)
