@@ -34,7 +34,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Tools\ffmpeg\linux-x64\ffmpeg\" />
     <Folder Include="wwwroot\Videos\" />
   </ItemGroup>
 

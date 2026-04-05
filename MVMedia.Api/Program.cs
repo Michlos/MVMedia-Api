@@ -11,8 +11,7 @@ using MVMedia.Api.Services.Interfaces;
 using System.Text;
 using Microsoft.OpenApi.Models;
 using MVMedia.Api.Context;
-using MVMedia.Api.Models.Helpers;
-using System.Runtime.InteropServices;
+using FFMpegCore;
 
 public partial class Program
 {
@@ -22,10 +21,10 @@ public partial class Program
 
 
         //CONNECSTION STRING CONFIGURATION
-
+                
         /////CONNECTION IN PRD - RAILWAY
         //var PostgreSqlConnection = builder.Configuration.GetConnectionString("PRDConnection");
-
+        
         ///CONNECTION IN HML - LOCALHOST
         var PostgreSqlConnection = builder.Configuration.GetConnectionString("PRDConnection");
 
@@ -154,41 +153,29 @@ public partial class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
-
-        #region //INICIO DO FFMPEG CONFIGURATION 
-        string ffmpegPath;
-
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            ffmpegPath = "ffmpeg";
-        }
-        else
-        {
-            ffmpegPath = Path.Combine(
-                AppContext.BaseDirectory,
-                "tools",
-                "ffmpeg",
-                "linux-x64",
-                "ffmpeg"
-                );
-
-            FfmpegPermission.EnsureExecutable(ffmpegPath);
-        }
-
-        builder.Services.AddSingleton(new FfmpegConfig
-        {
-            Path = ffmpegPath
-        });
-
-        #endregion //FIM DO FFMPEG CONFIGURATION
-
-
-
+        //builder.Services.AddCors(options =>
+        //{
+        //    options.AddPolicy("AllowAll",
+        //        policy =>
+        //        {
+        //            policy
+        //                .AllowAnyOrigin()
+        //                .AllowAnyHeader()
+        //                .AllowAnyMethod();
+        //        });
+        //});
 
         var app = builder.Build();
 
+        //GlobalFFOptions.Configure(new FFOptions
+        //{
+        //    BinaryFolder = @"E:\FFMPEG\bin",
+        //    TemporaryFilesFolder = Path.Combine(AppContext.BaseDirectory, "ffmpeg-temp"),
+        //});
 
+        //Directory.CreateDirectory(Path.Combine(AppContext.BaseDirectory, "ffmpeg-temp"));
 
+        //Trecho para aplicar migrations automaticamente no deploy
         using (var scope = app.Services.CreateScope())
         {
             var services = scope.ServiceProvider;
@@ -235,6 +222,4 @@ public partial class Program
 
         app.Run();
     }
-
-
 }
