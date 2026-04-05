@@ -1,9 +1,2 @@
 ﻿[phases.setup]
 aptPkgs = ["ffmpeg"]
-
-# Opcional: garanta que o build continue sendo executado
-[phases.build]
-cmds = ["npm ci", "npm run build"]
-
-[phases.start]
-cmd = "npm run start"
