@@ -11,7 +11,6 @@ using MVMedia.Api.Services.Interfaces;
 using System.Text;
 using Microsoft.OpenApi.Models;
 using MVMedia.Api.Context;
-using FFMpegCore;
 
 public partial class Program
 {
